@@ -54,3 +54,207 @@ System.out.println("No grades were entered.");
 A.close(); 
 }
 }
+// task 2
+import java.util.*;
+class Stock {
+private String symbol;
+private String name;
+private double price;
+public Stock(String symbol, String name, double price) {
+this.symbol = symbol;
+this.name = name;
+this.price = price;
+}
+public String getSymbol() {
+return symbol;
+ }
+public String getName() {
+ return name;
+    }
+
+ public double getPrice() {
+   return price;
+    }
+
+ public void setPrice(double price) {
+        this.price = price;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s (%s): $%.2f", name, symbol, price);
+    }
+}
+
+// Portfolio class to manage user's stock holdings
+class Portfolio {
+    private Map<Stock, Integer> holdings;
+
+    public Portfolio() {
+        holdings = new HashMap<>();
+    }
+
+    public void addStock(Stock stock, int quantity) {
+        holdings.put(stock, holdings.getOrDefault(stock, 0) + quantity);
+    }
+
+    public void removeStock(Stock stock, int quantity) {
+        if (holdings.containsKey(stock)) {
+            int currentQuantity = holdings.get(stock);
+            if (currentQuantity <= quantity) {
+                holdings.remove(stock);
+            } else {
+                holdings.put(stock, currentQuantity - quantity);
+            }
+        }
+    }
+
+    public double getPortfolioValue() {
+        double totalValue = 0;
+        for (Map.Entry<Stock, Integer> entry : holdings.entrySet()) {
+            totalValue += entry.getKey().getPrice() * entry.getValue();
+        }
+        return totalValue;
+    }
+
+    public void displayPortfolio() {
+        System.out.println("Portfolio:");
+        for (Map.Entry<Stock, Integer> entry : holdings.entrySet()) {
+            System.out.println(entry.getKey() + " - Quantity: " + entry.getValue());
+        }
+        System.out.println("Total Portfolio Value: $" + getPortfolioValue());
+    }
+
+    public Map<Stock, Integer> getHoldings() {
+        return holdings;
+    }
+}
+
+// MarketSimulator class to simulate stock price changes
+class MarketSimulator {
+    private List<Stock> stocks;
+    private Random random;
+
+    public MarketSimulator() {
+        stocks = new ArrayList<>();
+        random = new Random();
+    }
+
+    public void addStock(Stock stock) {
+        stocks.add(stock);
+    }
+
+    public void simulateMarket() {
+        for (Stock stock : stocks) {
+            double priceChange = (random.nextDouble() - 0.5) * 10; // Random price change between -5 and +5
+            double newPrice = stock.getPrice() + priceChange;
+            stock.setPrice(Math.max(newPrice, 0)); // Ensure price doesn't go negative
+        }
+    }
+
+    public void displayMarket() {
+        System.out.println("Market Data:");
+        for (Stock stock : stocks) {
+            System.out.println(stock);
+        }
+    }
+
+    public List<Stock> getStocks() {
+        return stocks;
+    }
+}
+
+// TradingPlatform class to provide the user interface
+class TradingPlatform {
+    private MarketSimulator marketSimulator;
+    private Portfolio portfolio;
+    private Scanner scanner;
+
+    public TradingPlatform() {
+        marketSimulator = new MarketSimulator();
+        portfolio = new Portfolio();
+        scanner = new Scanner(System.in);
+    }
+
+    public void start() {
+        // Add some initial stocks to the market
+        marketSimulator.addStock(new Stock("AAPL", "Apple Inc.", 150.0));
+        marketSimulator.addStock(new Stock("GOOGL", "Alphabet Inc.", 2800.0));
+        marketSimulator.addStock(new Stock("AMZN", "Amazon.com Inc.", 3400.0));
+
+        while (true) {
+            System.out.println("\n1. View Market Data");
+            System.out.println("2. Buy Stocks");
+            System.out.println("3. Sell Stocks");
+            System.out.println("4. View Portfolio");
+            System.out.println("5. Exit");
+            System.out.print("Choose an option: ");
+            int choice = scanner.nextInt();
+
+            switch (choice) {
+                case 1:
+                    marketSimulator.simulateMarket();
+                    marketSimulator.displayMarket();
+                    break;
+                case 2:
+                    buyStocks();
+                    break;
+                case 3:
+                    sellStocks();
+                    break;
+                case 4:
+                    portfolio.displayPortfolio();
+                    break;
+                case 5:
+                    System.out.println("Exiting...");
+                    return;
+                default:
+                    System.out.println("Invalid option. Please try again.");
+            }
+        }
+    }
+
+    private void buyStocks() {
+        marketSimulator.displayMarket();
+        System.out.print("Enter the stock symbol to buy: ");
+        String symbol = scanner.next();
+        System.out.print("Enter the quantity to buy: ");
+        int quantity = scanner.nextInt();
+
+        for (Stock stock : marketSimulator.getStocks()) {
+            if (stock.getSymbol().equalsIgnoreCase(symbol)) {
+                portfolio.addStock(stock, quantity);
+                System.out.println("Bought " + quantity + " shares of " + stock.getName());
+                return;
+            }
+        }
+        System.out.println("Stock not found.");
+    }
+
+    private void sellStocks() {
+        portfolio.displayPortfolio();
+        System.out.print("Enter the stock symbol to sell: ");
+        String symbol = scanner.next();
+        System.out.print("Enter the quantity to sell: ");
+        int quantity = scanner.nextInt();
+
+        for (Stock stock : portfolio.getHoldings().keySet()) {
+            if (stock.getSymbol().equalsIgnoreCase(symbol)) {
+                portfolio.removeStock(stock, quantity);
+                System.out.println("Sold " + quantity + " shares of " + stock.getName());
+                return;
+            }
+        }
+        System.out.println("Stock not found in portfolio.");
+    }
+}
+
+// Main class to run the program
+public class StockTradingPlatform {
+    public static void main(String[] args) {
+        TradingPlatform platform = new TradingPlatform();
+        platform.start();
+    }
+}
+
+// task 3
